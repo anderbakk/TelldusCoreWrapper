@@ -78,7 +78,7 @@ namespace TelldusCoreWrapper.Service.UnitTest
             var service = new TelldusCoreService(wrapperMock.Object);
 
             var result = service.GetDevices().ToList();
-            var methods = result.First().SupportedMethod.ToList();
+            var methods = result.First().SupportedMethods.ToList();
 
             methods[0].Code.Should().Be(1);
             methods[1].Code.Should().Be(2);
