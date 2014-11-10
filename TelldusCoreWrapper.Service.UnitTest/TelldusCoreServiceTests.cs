@@ -67,6 +67,21 @@ namespace TelldusCoreWrapper.Service.UnitTest
             result.First().Index.Should().Be(0);
         }
 
-        
+        [Test]
+        public void GetDevices_DeviceSupportsOnAndOff_VerifyGetSupportedMethods()
+        {
+            var wrapperMock = CreateMockForLibraryWrapper();
+            wrapperMock.Setup(m => m.GetNumberOfDevices()).Returns(1);
+            wrapperMock.Setup(m => m.GetDeviceId(0)).Returns(1);
+            wrapperMock.Setup(m => m.Methods(1, 1023)).Returns(3); // 1 | 2 = 3
+            
+            var service = new TelldusCoreService(wrapperMock.Object);
+
+            var result = service.GetDevices().ToList();
+            var methods = result.First().SupportedMethod.ToList();
+
+            methods[0].Code.Should().Be(1);
+            methods[1].Code.Should().Be(2);
+        }
     }
 }

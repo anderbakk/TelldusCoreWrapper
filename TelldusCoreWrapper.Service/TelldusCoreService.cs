@@ -1,30 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Linq;
 
-namespace TelldusCoreWrapper
+namespace TelldusCoreWrapper.Service
 {
-    public enum TelldusCoreResultCodes
-    {
-        Success = 0,
-        ErrorConnectingService = -6
-    }
-
-    public enum Methods
-    {
-        TurnOn = 1,
-        TurnOff = 2,
-        Dim = 16
-    }
-
     public class TelldusCoreService : IDisposable
     {
+        private readonly Dictionary<int, string> _availableMethods = new Dictionary<int, string>
+        {
+            {1, "Turn on"},
+            {2, "Turn off"},
+            {4, "Bell"},
+            {8, "Toggle"},
+            {16, "Dim"},
+            {32, "Self learn"},
+            {64, "Execute"},
+            {128, "Up"},
+            {256, "Down"},
+            {512, "Stop"}
+        };
+
         private readonly ITelldusCoreLibraryWrapper _telldusCoreLibraryWrapper;
 
         public TelldusCoreService(ITelldusCoreLibraryWrapper wrapper)
         {
             _telldusCoreLibraryWrapper = wrapper;
             _telldusCoreLibraryWrapper.Init();
+        }
+
+        public void Dispose()
+        {
+            _telldusCoreLibraryWrapper.Close();
         }
 
         public int GetDeviceIdFrom(int deviceIndex)
@@ -34,14 +40,21 @@ namespace TelldusCoreWrapper
 
         public void TurnOn(int deviceId)
         {
-            var resultCode = _telldusCoreLibraryWrapper.TurnOn(deviceId);
-            VerifyResultCode(resultCode);
+            _telldusCoreLibraryWrapper.TurnOn(deviceId);
+            VerifyResultCode();
         }
 
         public void TurnOff(int deviceId)
         {
-            var resultCode = _telldusCoreLibraryWrapper.TurnOff(deviceId);
-            VerifyResultCode(resultCode);
+            _telldusCoreLibraryWrapper.TurnOff(deviceId);
+            VerifyResultCode();
+        }
+
+        public void Dim(int deviceId, int level)
+        {
+            if (level < 0 || level > 255)
+                throw new ArgumentOutOfRangeException("level");
+            _telldusCoreLibraryWrapper.Dim(deviceId, level);
         }
 
         public int GetNumberOfDevices()
@@ -59,36 +72,40 @@ namespace TelldusCoreWrapper
 
                 var supportedMethods = GetSupportedMethods(deviceId);
 
-                yield return new Device{Id = deviceId, Name = name, Index = index, SupportedMethod = supportedMethods};
+                yield return new Device
+                {
+                    Id = deviceId,
+                    Name = name,
+                    Index = index,
+                    SupportedMethods = supportedMethods
+                };
             }
         }
 
-        private int GetSupportedMethods(int deviceId)
+        private IEnumerable<Method> GetSupportedMethods(int deviceId)
         {
-            var result = _telldusCoreLibraryWrapper.Methods(deviceId, GetMethods());
-            return result;
+            var telldusResult = _telldusCoreLibraryWrapper.Methods(deviceId, GetAllMethodsAsSingleInt());
+
+            return (from availableMethod in _availableMethods
+                let orResult = availableMethod.Key | telldusResult
+                where orResult == telldusResult
+                select new Method {Code = availableMethod.Key, Description = availableMethod.Value}).ToList();
         }
 
-        private int GetMethods()
+        public int GetAllMethodsAsSingleInt()
         {
-            return (int) Methods.Dim;
+            return _availableMethods.Aggregate(0, (current, availableMethod) => current | availableMethod.Key);
         }
 
-        private static void VerifyResultCode(int resultCode)
+        private static void VerifyResultCode()
         {
-            if(resultCode != (int) TelldusCoreResultCodes.Success)
-                throw new Exception("Operation failed :" + resultCode);
+            //TODO Check if result code is SUCCESS or error
         }
 
         public string GetName(int deviceId)
         {
             var name = _telldusCoreLibraryWrapper.GetName(deviceId);
             return name;
-        }
-
-        public void Dispose()
-        {
-            _telldusCoreLibraryWrapper.Close();
         }
     }
 }

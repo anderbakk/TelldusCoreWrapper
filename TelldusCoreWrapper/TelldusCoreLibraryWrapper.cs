@@ -129,9 +129,10 @@ namespace TelldusCoreWrapper
         /// </summary>
         /// <param name="deviceId">The device id to dim</param>
         /// <param name="level">The level the device should dim to. This value should be 0 - 255</param>
-        public void Dim(int deviceId, IntPtr level)
+        public void Dim(int deviceId, int level)
         {
-            tdDim(deviceId, level);
+            var intPtr = new IntPtr(level);
+            tdDim(deviceId, intPtr);
         }
     }
 }
