@@ -131,8 +131,12 @@ namespace TelldusCoreWrapper
         /// <param name="level">The level the device should dim to. This value should be 0 - 255</param>
         public void Dim(int deviceId, int level)
         {
-            var intPtr = new IntPtr(level);
-            tdDim(deviceId, intPtr);
+            var intPointer = Marshal.AllocHGlobal(sizeof(int));
+            Marshal.WriteInt32(intPointer, level);
+
+            tdDim(deviceId, intPointer);
+
+            Marshal.FreeHGlobal(intPointer);            
         }
     }
 }

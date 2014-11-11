@@ -23,10 +23,8 @@ namespace TellStickConsole
                         service.TurnOff(device.Id);
                     Thread.Sleep(1000);
                     if (device.IsMethodSupported(16))
-                        service.Dim(device.Id, 50);
-                    
+                        service.Dim(device.Id, 50);   
                 }
-          
             }
             
             Console.ReadLine();
