@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace TelldusCoreWrapper
@@ -138,5 +139,60 @@ namespace TelldusCoreWrapper
 
             Marshal.FreeHGlobal(intPointer);            
         }
+
+        [DllImport("TelldusCore.dll")]
+        private static extern int tdSensor(IntPtr protocol, int protocolLength, IntPtr model, int modelLength, IntPtr id, IntPtr dataTypes);
+
+        public IEnumerable<SensorReading> Sensor()
+        {
+            const int protocolstringsize = 20;
+            const int modelstringsize = 30;
+			const int valuestringsize = 20;
+
+            var protocol = Marshal.AllocHGlobal(Marshal.SystemDefaultCharSize * protocolstringsize);
+            var model = Marshal.AllocHGlobal(Marshal.SystemDefaultCharSize * modelstringsize);
+            var id = Marshal.AllocHGlobal(sizeof(int));
+            var dataType = Marshal.AllocHGlobal(sizeof(int));
+            
+            var resultCode = tdSensor(protocol, protocolstringsize, model, modelstringsize, id, dataType);
+            while (resultCode == ResultCodes.TellstickSuccess)
+            {
+                var protocolString = Marshal.PtrToStringAnsi(protocol);
+                var modelString = Marshal.PtrToStringAnsi(model);
+
+                var value = Marshal.AllocHGlobal(Marshal.SystemDefaultCharSize * valuestringsize);
+                var timestamp = Marshal.AllocHGlobal(sizeof(int));
+                if ((Marshal.ReadIntPtr(dataType).ToInt32() & 1) != 0)
+                {
+                    var idInt = Marshal.ReadIntPtr(id).ToInt32();
+
+                    tdSensorValue(protocol, model, idInt,
+                        1, value, valuestringsize, timestamp);
+                    var valueString = Marshal.PtrToStringAnsi(value);
+                   
+                    yield return new SensorReading(protocolString, modelString, valueString, 1);
+                }
+                if ((Marshal.ReadIntPtr(dataType).ToInt32() & 2) != 0)
+                {
+                    tdSensorValue(protocol, model, Marshal.ReadIntPtr(id).ToInt32(),
+                        2, value, valuestringsize, timestamp);
+                    var valueString = Marshal.PtrToStringAnsi(value);
+                    yield return new SensorReading(protocolString, modelString, valueString, 2);
+                }
+                
+                Marshal.FreeHGlobal(value);
+                Marshal.FreeHGlobal(timestamp);
+                resultCode = tdSensor(protocol, protocolstringsize, model, modelstringsize, id, dataType);
+            }
+            
+            Marshal.FreeHGlobal(protocol);
+            Marshal.FreeHGlobal(model);
+            Marshal.FreeHGlobal(id);
+            Marshal.FreeHGlobal(dataType);
+        }
+
+        [DllImport("TelldusCore.dll")]
+        private static extern int tdSensorValue(IntPtr protocol, IntPtr model, int id, int dataType, IntPtr value, int valueLength, IntPtr timestamp);
+		
     }
 }

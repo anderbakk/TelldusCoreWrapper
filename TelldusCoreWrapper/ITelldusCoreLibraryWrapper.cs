@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace TelldusCoreWrapper
 {
@@ -71,5 +72,7 @@ namespace TelldusCoreWrapper
         /// <param name="deviceId">The device id to dim</param>
         /// <param name="level">The level the device should dim to. This value should be 0 - 255</param>
         void Dim(int deviceId, int level);
+
+        IEnumerable<SensorReading> Sensor();
     }
 }

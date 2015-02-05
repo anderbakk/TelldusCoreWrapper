@@ -97,6 +97,12 @@ namespace TelldusCoreWrapper.Service
             return _availableMethods.Aggregate(0, (current, availableMethod) => current | availableMethod.Key);
         }
 
+        public List<string> GetSensorValues()
+        {
+            var sensorReadings = _telldusCoreLibraryWrapper.Sensor();
+            //Just for demo purpose
+            return sensorReadings.Select(s => s.Model + " " + s.SensorValue).ToList();
+        }
         private static void VerifyResultCode()
         {
             //TODO Check if result code is SUCCESS or error

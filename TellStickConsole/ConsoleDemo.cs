@@ -22,8 +22,20 @@ namespace TellStickConsole
                     if (device.IsMethodSupported(2))
                         service.TurnOff(device.Id);
                     Thread.Sleep(1000);
+                    if (device.IsMethodSupported(2))
+                        service.TurnOn(device.Id);
+                    Thread.Sleep(1000);
+
                     if (device.IsMethodSupported(16))
-                        service.Dim(device.Id, 50);   
+                        service.Dim(device.Id, 50);
+
+                }
+
+                var values = service.GetSensorValues();
+                Console.WriteLine("Sensor readings : " + values.Count);
+                foreach (var value in values)
+                {
+                    Console.WriteLine(value);
                 }
             }
             
