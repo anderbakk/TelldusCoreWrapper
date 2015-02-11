@@ -73,6 +73,7 @@ namespace TelldusCoreWrapper
         /// <param name="level">The level the device should dim to. This value should be 0 - 255</param>
         void Dim(int deviceId, int level);
 
-        IEnumerable<SensorReading> Sensor();
+        IEnumerable<Sensor> Sensor();
+        IEnumerable<SensorReading> SensorValues(IEnumerable<Sensor> sensors);
     }
 }

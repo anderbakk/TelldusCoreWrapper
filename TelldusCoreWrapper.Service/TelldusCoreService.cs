@@ -97,11 +97,14 @@ namespace TelldusCoreWrapper.Service
             return _availableMethods.Aggregate(0, (current, availableMethod) => current | availableMethod.Key);
         }
 
-        public List<string> GetSensorValues()
+        public IEnumerable<Sensor> GetAllSensors()
         {
-            var sensorReadings = _telldusCoreLibraryWrapper.Sensor();
-            //Just for demo purpose
-            return sensorReadings.Select(s => s.Model + " " + s.SensorValue).ToList();
+            return _telldusCoreLibraryWrapper.Sensor();
+        }
+
+        public IEnumerable<SensorReading> GetSensorReadings(IEnumerable<Sensor> sensors)
+        {
+            return _telldusCoreLibraryWrapper.SensorValues(sensors);
         }
         private static void VerifyResultCode()
         {

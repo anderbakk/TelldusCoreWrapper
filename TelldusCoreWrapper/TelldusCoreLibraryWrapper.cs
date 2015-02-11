@@ -143,12 +143,15 @@ namespace TelldusCoreWrapper
         [DllImport("TelldusCore.dll")]
         private static extern int tdSensor(IntPtr protocol, int protocolLength, IntPtr model, int modelLength, IntPtr id, IntPtr dataTypes);
 
-        public IEnumerable<SensorReading> Sensor()
+        /// <summary>
+        /// Returns a list of sensors detected. 
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<Sensor> Sensor()
         {
             const int protocolstringsize = 20;
             const int modelstringsize = 30;
-			const int valuestringsize = 20;
-
+			
             var protocol = Marshal.AllocHGlobal(Marshal.SystemDefaultCharSize * protocolstringsize);
             var model = Marshal.AllocHGlobal(Marshal.SystemDefaultCharSize * modelstringsize);
             var id = Marshal.AllocHGlobal(sizeof(int));
@@ -157,31 +160,11 @@ namespace TelldusCoreWrapper
             var resultCode = tdSensor(protocol, protocolstringsize, model, modelstringsize, id, dataType);
             while (resultCode == ResultCodes.TellstickSuccess)
             {
-                var protocolString = Marshal.PtrToStringAnsi(protocol);
-                var modelString = Marshal.PtrToStringAnsi(model);
-
-                var value = Marshal.AllocHGlobal(Marshal.SystemDefaultCharSize * valuestringsize);
-                var timestamp = Marshal.AllocHGlobal(sizeof(int));
-                if ((Marshal.ReadIntPtr(dataType).ToInt32() & 1) != 0)
-                {
-                    var idInt = Marshal.ReadIntPtr(id).ToInt32();
-
-                    tdSensorValue(protocol, model, idInt,
-                        1, value, valuestringsize, timestamp);
-                    var valueString = Marshal.PtrToStringAnsi(value);
-                   
-                    yield return new SensorReading(protocolString, modelString, valueString, 1);
-                }
-                if ((Marshal.ReadIntPtr(dataType).ToInt32() & 2) != 0)
-                {
-                    tdSensorValue(protocol, model, Marshal.ReadIntPtr(id).ToInt32(),
-                        2, value, valuestringsize, timestamp);
-                    var valueString = Marshal.PtrToStringAnsi(value);
-                    yield return new SensorReading(protocolString, modelString, valueString, 2);
-                }
+                yield return new Sensor(Marshal.PtrToStringAnsi(protocol),
+                    Marshal.PtrToStringAnsi(model),
+                    Marshal.ReadIntPtr(dataType).ToInt32(),
+                    Marshal.ReadIntPtr(id).ToInt32());
                 
-                Marshal.FreeHGlobal(value);
-                Marshal.FreeHGlobal(timestamp);
                 resultCode = tdSensor(protocol, protocolstringsize, model, modelstringsize, id, dataType);
             }
             
@@ -193,6 +176,47 @@ namespace TelldusCoreWrapper
 
         [DllImport("TelldusCore.dll")]
         private static extern int tdSensorValue(IntPtr protocol, IntPtr model, int id, int dataType, IntPtr value, int valueLength, IntPtr timestamp);
+
+        public IEnumerable<SensorReading> SensorValues(IEnumerable<Sensor> sensors)
+        {
+            const int valuestringsize = 20;
+            var protocol = new IntPtr();
+            var model = new IntPtr();
+            var value = Marshal.AllocHGlobal(Marshal.SystemDefaultCharSize * valuestringsize);
+            var timestamp = Marshal.AllocHGlobal(sizeof(int));
+
+            foreach (var sensor in sensors)
+            {   
+                if ((sensor.DataType & 1) != 0)
+                {
+                    protocol = Marshal.StringToHGlobalAnsi(sensor.Protocol);
+                    model = Marshal.StringToHGlobalAnsi(sensor.Model);
+                    tdSensorValue(protocol, model, sensor.Id,
+                        1, value, valuestringsize, timestamp);
+                    var valueString = Marshal.PtrToStringAnsi(value);
+
+                    yield return new SensorReading(sensor, valueString);
+                }
+                if ((sensor.DataType & 2) != 0)
+                {
+                    protocol = Marshal.StringToHGlobalAnsi(sensor.Protocol);
+                    model = Marshal.StringToHGlobalAnsi(sensor.Model);
+                    tdSensorValue(protocol, model, sensor.Id,
+                        1, value, valuestringsize, timestamp);
+                    var valueString = Marshal.PtrToStringAnsi(value);
+
+                    yield return new SensorReading(sensor, valueString);
+                }
+            }
+
+            Marshal.FreeHGlobal(value);
+            Marshal.FreeHGlobal(timestamp);
+            Marshal.FreeHGlobal(protocol);
+            Marshal.FreeHGlobal(model);
+            
+        }
 		
     }
+
+    
 }

@@ -2,20 +2,13 @@
 {
     public struct SensorReading
     {
-        public SensorReading(string protocolString, string model, string sensorValue, int dataType):this()
+        public SensorReading(Sensor sensor, string sensorValue):this()
         {
-            Protocol = protocolString;
-            Model = model;
+            Sensor = sensor;
             SensorValue = sensorValue;
-            DataType = dataType;
         }
 
-        public int DataType { get; private set; }
-
+        public Sensor Sensor{ get; private set; }
         public string SensorValue { get; private set; }
-
-        public string Model { get; private set; }
-
-        public string Protocol { get; private set; }
     }
 }

@@ -36,6 +36,7 @@
   <ItemGroup>
     <Compile Include="ITelldusCoreLibraryWrapper.cs" />
     <Compile Include="ResultCodes.cs" />
+    <Compile Include="Sensor.cs" />
     <Compile Include="SensorReading.cs" />
     <Compile Include="TelldusCoreLibraryWrapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

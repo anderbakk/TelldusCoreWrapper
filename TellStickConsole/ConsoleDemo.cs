@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using TelldusCoreWrapper;
 using TelldusCoreWrapper.Service;
@@ -31,14 +32,17 @@ namespace TellStickConsole
 
                 }
 
-                var values = service.GetSensorValues();
-                Console.WriteLine("Sensor readings : " + values.Count);
-                foreach (var value in values)
+                var sensors = service.GetAllSensors().ToList();
+                Console.WriteLine("Found {0} sensors", sensors.Count());
+                var sensorValues = service.GetSensorReadings(sensors);
+                foreach (var sensor in sensorValues)
                 {
-                    Console.WriteLine(value);
+                    Console.WriteLine("Id : {0}, Model:{1}, Protocol:{2}, Value:{3}", 
+                        sensor.Sensor.Id, sensor.Sensor.Model, 
+                        sensor.Sensor.Protocol, sensor.SensorValue);
                 }
             }
-            
+            Console.WriteLine("Done");
             Console.ReadLine();
         }
     }
