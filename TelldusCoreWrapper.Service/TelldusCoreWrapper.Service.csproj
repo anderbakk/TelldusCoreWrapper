@@ -35,8 +35,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Device.cs" />
+    <Compile Include="ReceiverDevice.cs" />
     <Compile Include="Method.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SensorDevice.cs" />
     <Compile Include="TelldusCoreService.cs" />
   </ItemGroup>
   <ItemGroup>

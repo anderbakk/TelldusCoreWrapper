@@ -202,7 +202,7 @@ namespace TelldusCoreWrapper
                     protocol = Marshal.StringToHGlobalAnsi(sensor.Protocol);
                     model = Marshal.StringToHGlobalAnsi(sensor.Model);
                     tdSensorValue(protocol, model, sensor.Id,
-                        1, value, valuestringsize, timestamp);
+                        2, value, valuestringsize, timestamp);
                     var valueString = Marshal.PtrToStringAnsi(value);
 
                     yield return new SensorReading(sensor, valueString);

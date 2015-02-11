@@ -10,6 +10,7 @@ namespace TellStickConsole
     {
         public static void Main(string[] args)
         {
+
             using (var service = new TelldusCoreService(new TelldusCoreLibraryWrapper()))
             {
                 var devices = service.GetDevices();
