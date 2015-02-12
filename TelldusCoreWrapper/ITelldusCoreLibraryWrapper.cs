@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using TelldusCoreWrapper.Entities;
 
 namespace TelldusCoreWrapper
 {
@@ -45,7 +45,7 @@ namespace TelldusCoreWrapper
         /// <param name="deviceIndex">The device id to query</param>
         /// <param name="methodsSupported">The methods the client application supports, OR'ed into a single integer</param>
         /// <returns>The method-flags OR'ed into an integer</returns>
-        int Methods(int deviceIndex, int methodsSupported);
+        IEnumerable<Method> Methods(int deviceIndex);
 
         /// <summary>
         /// This function returns the number of devices configured.
@@ -61,19 +61,13 @@ namespace TelldusCoreWrapper
         string GetName(int deviceId);
 
         /// <summary>
-        /// This function removes a controller from the list of controllers. The controller must not be available (disconnected) for this to work.
-        /// </summary>
-        /// <param name="theString">A string returned from a td* function</param>
-        void ReleaseString(IntPtr theString);
-
-        /// <summary>
         /// Dims a device. Make sure the device supports this by calling tdMethods() before any call to this function
         /// </summary>
         /// <param name="deviceId">The device id to dim</param>
         /// <param name="level">The level the device should dim to. This value should be 0 - 255</param>
         void Dim(int deviceId, int level);
 
-        IEnumerable<Sensor> Sensor();
-        IEnumerable<SensorReading> SensorValues(IEnumerable<Sensor> sensors);
+        IEnumerable<Sensor> GetSensors();
+        IEnumerable<SensorValue> SensorValues(Sensor sensor);
     }
 }

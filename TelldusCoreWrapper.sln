@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelldusCoreWrapper", "TelldusCoreWrapper\TelldusCoreWrapper.csproj", "{8BE27FA6-0653-4CDC-9EE8-A25B59E03E2F}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelldusCoreWrapper.Service", "TelldusCoreWrapper.Service\TelldusCoreWrapper.Service.csproj", "{061487AA-701C-4659-A016-1E2228FFD915}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelldusCoreWrapper.Service.UnitTest", "TelldusCoreWrapper.Service.UnitTest\TelldusCoreWrapper.Service.UnitTest.csproj", "{56252861-1756-4B05-8D14-8CF27B2E3431}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelldusCoreWrapper.Entities", "TelldusCoreWrapper.Entities\TelldusCoreWrapper.Entities.csproj", "{8F672AAF-1A18-4B98-9735-26C5C28EE1A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{56252861-1756-4B05-8D14-8CF27B2E3431}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{56252861-1756-4B05-8D14-8CF27B2E3431}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{56252861-1756-4B05-8D14-8CF27B2E3431}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F672AAF-1A18-4B98-9735-26C5C28EE1A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F672AAF-1A18-4B98-9735-26C5C28EE1A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F672AAF-1A18-4B98-9735-26C5C28EE1A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F672AAF-1A18-4B98-9735-26C5C28EE1A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

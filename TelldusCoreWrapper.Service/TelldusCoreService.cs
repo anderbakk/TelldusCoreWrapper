@@ -1,31 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using TelldusCoreWrapper.Entities;
 
 namespace TelldusCoreWrapper.Service
 {
     public class TelldusCoreService : IDisposable
     {
-        private readonly Dictionary<int, string> _availableReceiverMethods = new Dictionary<int, string>
-        {
-            {1, "Turn on"},
-            {2, "Turn off"},
-            {4, "Bell"},
-            {8, "Toggle"},
-            {16, "Dim"},
-            {32, "Self learn"},
-            {64, "Execute"},
-            {128, "Up"},
-            {256, "Down"},
-            {512, "Stop"}
-        };
-
-        private readonly Dictionary<int, string> _availableSensorMethods = new Dictionary<int, string>
-        {
-            {1, "Temperature"},
-            {2, "Humidity"},
-        }; 
-
         private readonly ITelldusCoreLibraryWrapper _telldusCoreLibraryWrapper;
 
         public TelldusCoreService(ITelldusCoreLibraryWrapper wrapper)
@@ -68,22 +48,9 @@ namespace TelldusCoreWrapper.Service
             return _telldusCoreLibraryWrapper.GetNumberOfDevices();
         }
 
-        public IEnumerable<SensorDevice> GetSensors()
+        public IEnumerable<Sensor> GetSensors()
         {
-            var sensors = _telldusCoreLibraryWrapper.Sensor();
-            return from sensor in sensors let availableMethods = (from availableSensorMethod in _availableSensorMethods
-                where (sensor.DataType & availableSensorMethod.Key) != 0
-                select new Method
-                {
-                    Code = availableSensorMethod.Key, Description = availableSensorMethod.Value
-                }).ToList() select new SensorDevice
-                {
-                    Id = sensor.Id,
-                    Model = sensor.Model,
-                    Protocol = sensor.Protocol,
-                    SupportedMethods = availableMethods
-                   
-                };
+            return _telldusCoreLibraryWrapper.GetSensors();
         }
 
         public IEnumerable<ReceiverDevice> GetDevices()
@@ -93,7 +60,7 @@ namespace TelldusCoreWrapper.Service
             {
                 var deviceId = GetDeviceIdFrom(index);
                 var name = GetName(deviceId);
-                var supportedMethods = GetSupportedMethodsForReceiver(deviceId);
+                var supportedMethods = _telldusCoreLibraryWrapper.Methods(deviceId);
 
                 yield return new ReceiverDevice
                 {
@@ -105,30 +72,13 @@ namespace TelldusCoreWrapper.Service
             }
         }
 
-        private IEnumerable<Method> GetSupportedMethodsForReceiver(int deviceId)
-        {
-            var telldusResult = _telldusCoreLibraryWrapper.Methods(deviceId, GetAllMethodsAsSingleInt());
 
-            return (from availableMethod in _availableReceiverMethods
-                let orResult = availableMethod.Key | telldusResult
-                where orResult == telldusResult
-                select new Method {Code = availableMethod.Key, Description = availableMethod.Value}).ToList();
+
+        public IEnumerable<SensorValue> GetValuesFromSensor(Sensor sensor)
+        {
+            return _telldusCoreLibraryWrapper.SensorValues(sensor);
         }
 
-        public int GetAllMethodsAsSingleInt()
-        {
-            return _availableReceiverMethods.Aggregate(0, (current, availableMethod) => current | availableMethod.Key);
-        }
-
-        public IEnumerable<Sensor> GetAllSensors()
-        {
-            return _telldusCoreLibraryWrapper.Sensor();
-        }
-
-        public IEnumerable<SensorReading> GetSensorReadings(IEnumerable<Sensor> sensors)
-        {
-            return _telldusCoreLibraryWrapper.SensorValues(sensors);
-        }
         private static void VerifyResultCode()
         {
             //TODO Check if result code is SUCCESS or error

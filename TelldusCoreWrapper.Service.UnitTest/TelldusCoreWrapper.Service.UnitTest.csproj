@@ -55,6 +55,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TelldusCoreWrapper.Entities\TelldusCoreWrapper.Entities.csproj">
+      <Project>{8F672AAF-1A18-4B98-9735-26C5C28EE1A6}</Project>
+      <Name>TelldusCoreWrapper.Entities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TelldusCoreWrapper.Service\TelldusCoreWrapper.Service.csproj">
       <Project>{061487AA-701C-4659-A016-1E2228FFD915}</Project>
       <Name>TelldusCoreWrapper.Service</Name>

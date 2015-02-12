@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
+using TelldusCoreWrapper.Entities;
 
 namespace TelldusCoreWrapper
 {
@@ -79,9 +81,22 @@ namespace TelldusCoreWrapper
         /// <param name="deviceIndex">The device id to query</param>
         /// <param name="methodsSupported">The methods the client application supports, OR'ed into a single integer</param>
         /// <returns>The method-flags OR'ed into an integer</returns>
-        public int Methods(int deviceIndex, int methodsSupported)
+        public IEnumerable<Method> Methods(int deviceIndex)
         {
-            return tdMethods(deviceIndex, methodsSupported);
+            var allMethods = GetAllMethodsAsSingleInt();
+            var methodsAsSingleInt = tdMethods(deviceIndex, allMethods);
+            return
+                    Enum.GetValues(typeof(Method))
+                        .Cast<Method>()
+                        .Where(method => (methodsAsSingleInt & (int)method) != 0)
+                        .ToList();
+        }
+
+        private static int GetAllMethodsAsSingleInt()
+        {
+            var availableMethods = (from Method method in Enum.GetValues(typeof(Method)) select (int)method).ToList();
+
+            return availableMethods.Aggregate(0, (current, availableMethod) => current | availableMethod);
         }
 
         [DllImport("TelldusCore.dll")]
@@ -114,14 +129,6 @@ namespace TelldusCoreWrapper
 
         [DllImport("TelldusCore.dll")]
         private static extern void tdReleaseString(IntPtr thestring);
-        /// <summary>
-        /// This function removes a controller from the list of controllers. The controller must not be available (disconnected) for this to work.
-        /// </summary>
-        /// <param name="theString">A string returned from a td* function</param>
-        public void ReleaseString(IntPtr theString)
-        {
-            tdReleaseString(theString);
-        }
 
         [DllImport("TelldusCore.dll")]
         private static extern void tdDim(int deviceId, IntPtr level);
@@ -147,7 +154,7 @@ namespace TelldusCoreWrapper
         /// Returns a list of sensors detected. 
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<Sensor> Sensor()
+        public IEnumerable<Sensor> GetSensors()
         {
             const int protocolstringsize = 20;
             const int modelstringsize = 30;
@@ -160,10 +167,20 @@ namespace TelldusCoreWrapper
             var resultCode = tdSensor(protocol, protocolstringsize, model, modelstringsize, id, dataType);
             while (resultCode == ResultCodes.TellstickSuccess)
             {
-                yield return new Sensor(Marshal.PtrToStringAnsi(protocol),
-                    Marshal.PtrToStringAnsi(model),
-                    Marshal.ReadIntPtr(dataType).ToInt32(),
-                    Marshal.ReadIntPtr(id).ToInt32());
+                var dataTypeInt = Marshal.ReadIntPtr(dataType).ToInt32();
+                var supportedMethods =
+                    Enum.GetValues(typeof (SensorValueType))
+                        .Cast<SensorValueType>()
+                        .Where(sensorValueType => (dataTypeInt & (int) sensorValueType) != 0)
+                        .ToList();
+
+                yield return new Sensor
+                {
+                    Id = Marshal.ReadIntPtr(id).ToInt32(),
+                    Protocol = Marshal.PtrToStringAnsi(protocol),
+                    Model = Marshal.PtrToStringAnsi(model),
+                    SupportedMethods = supportedMethods,
+                };
                 
                 resultCode = tdSensor(protocol, protocolstringsize, model, modelstringsize, id, dataType);
             }
@@ -177,43 +194,40 @@ namespace TelldusCoreWrapper
         [DllImport("TelldusCore.dll")]
         private static extern int tdSensorValue(IntPtr protocol, IntPtr model, int id, int dataType, IntPtr value, int valueLength, IntPtr timestamp);
 
-        public IEnumerable<SensorReading> SensorValues(IEnumerable<Sensor> sensors)
+        public IEnumerable<SensorValue> SensorValues(Sensor sensor)
         {
             const int valuestringsize = 20;
             var protocol = new IntPtr();
             var model = new IntPtr();
             var value = Marshal.AllocHGlobal(Marshal.SystemDefaultCharSize * valuestringsize);
-            var timestamp = Marshal.AllocHGlobal(sizeof(int));
+            var timestampPtr = Marshal.AllocHGlobal(sizeof(int));
 
-            foreach (var sensor in sensors)
-            {   
-                if ((sensor.DataType & 1) != 0)
-                {
-                    protocol = Marshal.StringToHGlobalAnsi(sensor.Protocol);
-                    model = Marshal.StringToHGlobalAnsi(sensor.Model);
-                    tdSensorValue(protocol, model, sensor.Id,
-                        1, value, valuestringsize, timestamp);
-                    var valueString = Marshal.PtrToStringAnsi(value);
+            var sensorValues = new List<SensorValue>();
+            foreach (var supportedMethod in sensor.SupportedMethods)
+            {
+                protocol = Marshal.StringToHGlobalAnsi(sensor.Protocol);
+                model = Marshal.StringToHGlobalAnsi(sensor.Model);
+                tdSensorValue(protocol, model, sensor.Id,
+                    (int)supportedMethod, value, valuestringsize, timestampPtr);
 
-                    yield return new SensorReading(sensor, valueString);
-                }
-                if ((sensor.DataType & 2) != 0)
-                {
-                    protocol = Marshal.StringToHGlobalAnsi(sensor.Protocol);
-                    model = Marshal.StringToHGlobalAnsi(sensor.Model);
-                    tdSensorValue(protocol, model, sensor.Id,
-                        2, value, valuestringsize, timestamp);
-                    var valueString = Marshal.PtrToStringAnsi(value);
-
-                    yield return new SensorReading(sensor, valueString);
-                }
+                var timestamp = IntToDateTime(Marshal.ReadIntPtr(timestampPtr).ToInt32());
+                var valueString = Marshal.PtrToStringAnsi(value);
+                sensorValues.Add(new SensorValue(supportedMethod, valueString, timestamp));
             }
-
+            
             Marshal.FreeHGlobal(value);
-            Marshal.FreeHGlobal(timestamp);
+            Marshal.FreeHGlobal(timestampPtr);
             Marshal.FreeHGlobal(protocol);
             Marshal.FreeHGlobal(model);
-            
+
+            return sensorValues;
+        }
+
+        private static DateTime IntToDateTime(int timestamp)
+        {
+            var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            dateTime = dateTime.AddSeconds(timestamp);
+            return dateTime;
         }
 		
     }

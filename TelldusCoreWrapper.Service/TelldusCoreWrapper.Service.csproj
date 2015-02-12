@@ -34,14 +34,14 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Device.cs" />
-    <Compile Include="ReceiverDevice.cs" />
-    <Compile Include="Method.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SensorDevice.cs" />
     <Compile Include="TelldusCoreService.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TelldusCoreWrapper.Entities\TelldusCoreWrapper.Entities.csproj">
+      <Project>{8F672AAF-1A18-4B98-9735-26C5C28EE1A6}</Project>
+      <Name>TelldusCoreWrapper.Entities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TelldusCoreWrapper\TelldusCoreWrapper.csproj">
       <Project>{8BE27FA6-0653-4CDC-9EE8-A25B59E03E2F}</Project>
       <Name>TelldusCoreWrapper</Name>
