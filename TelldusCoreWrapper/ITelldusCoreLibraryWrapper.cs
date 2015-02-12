@@ -43,7 +43,6 @@ namespace TelldusCoreWrapper
         /// Query a device for which methods it supports. By supplying the methods you support the library could remap the methods a device support for better fit the application.
         /// </summary>
         /// <param name="deviceIndex">The device id to query</param>
-        /// <param name="methodsSupported">The methods the client application supports, OR'ed into a single integer</param>
         /// <returns>The method-flags OR'ed into an integer</returns>
         IEnumerable<Method> Methods(int deviceIndex);
 
