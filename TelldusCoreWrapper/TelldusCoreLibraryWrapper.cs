@@ -212,7 +212,12 @@ namespace TelldusCoreWrapper
 
                 var timestamp = IntToDateTime(Marshal.ReadIntPtr(timestampPtr).ToInt32());
                 var valueString = Marshal.PtrToStringAnsi(value);
-                sensorValues.Add(new SensorValue(supportedMethod, valueString, timestamp));
+                sensorValues.Add(new SensorValue
+                {
+                    SensorValueType = supportedMethod,
+                    Value = valueString,
+                    Timestamp = timestamp
+                });
             }
             
             Marshal.FreeHGlobal(value);
